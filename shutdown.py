@@ -10,18 +10,31 @@ def start_timer():
         messagebox.showerror("Ошибка", "Введите числа")
         return
 
-    if hours <= 0  and minutes < 20:
-        minutes = 20
+    mode = mode_var.get()
+
+    if mode == "shutdown" or mode == "restart":
+        if hours <= 0 and minutes < 20:
+            minutes = 20
 
     seconds = hours * 3600 + minutes * 60
-    if not (0 < seconds <= 72000):
-        messagebox.showerror("Ошибка", "Введите корректное время (1 сек – 20 часов)")
+    if not (0 < seconds <= 86400):
+        messagebox.showerror("Ошибка", "Введите корректное время (1 минута – 20 часов)")
         return
 
-    cmd = f"timeout /t {seconds} /nobreak && shutdown {mode_var.get()}"
+    if mode == "hibernate":
+        cmd = f"timeout /t {seconds} /nobreak && rundll32.exe powrprof.dll,SetSuspendState Hibernate"
+    elif mode == "sleep":
+        cmd = f"timeout /t {seconds} /nobreak && rundll32.exe powrprof.dll,SetSuspendState Sleep"
+    elif mode == "shutdown":
+        cmd = f"timeout /t {seconds} /nobreak && shutdown /s"
+    elif mode == "restart":
+        cmd = f"timeout /t {seconds} /nobreak && shutdown /r"
+    else:
+        messagebox.showerror("Ошибка", "Не выбран режим")
+        return
+
     subprocess.Popen(["cmd", "/c", cmd], creationflags=subprocess.CREATE_NEW_CONSOLE)
     root.withdraw()
-    # root.iconify()
 
 def change_value(entry, delta):
     try:
@@ -34,7 +47,7 @@ def change_value(entry, delta):
 
 root = tk.Tk()
 root.title("Shutdown Timer")
-root.geometry("260x230")
+root.geometry("260x260")
 
 def add_field(label_text):
     tk.Label(root, text=label_text).pack()
@@ -48,8 +61,15 @@ def add_field(label_text):
 hours_entry = add_field("Часы:")
 minutes_entry = add_field("Минуты:")
 
-mode_var = tk.StringVar(value="/h")
-for text, val in [("Гибернация", "/h"), ("Выключение", "/s"), ("Перезагрузка", "/r")]:
+mode_var = tk.StringVar(value="hibernate")
+modes = [
+    ("Гибернация", "hibernate"),
+    ("Сон", "sleep"),
+    ("Выключение", "shutdown"),
+    ("Перезагрузка", "restart"),
+]
+
+for text, val in modes:
     tk.Radiobutton(root, text=text, variable=mode_var, value=val).pack()
 
 tk.Button(root, text="Запустить", command=start_timer, bg='gold1').pack(pady=10)
