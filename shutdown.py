@@ -13,7 +13,7 @@ def start_timer():
     mode = mode_var.get()
 
     if mode == "shutdown" or mode == "restart":
-        if hours <= 0 and minutes < 20:
+        if hours := 0 and minutes < 20 and minutes != 0:
             minutes = 20
 
     seconds = hours * 3600 + minutes * 60
