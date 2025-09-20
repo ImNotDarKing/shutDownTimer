@@ -48,6 +48,7 @@ def change_value(entry, delta):
 root = tk.Tk()
 root.title("Shutdown Timer")
 root.geometry("260x260")
+root.resizable(False, False)
 
 def add_field(label_text):
     tk.Label(root, text=label_text).pack()
