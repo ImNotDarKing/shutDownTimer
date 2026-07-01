@@ -17,11 +17,16 @@ def start_timer():
     #     if hours == 0 and minutes < 20 and minutes != 0:
     #         minutes = 20
 
-    seconds = hours * 3600 + minutes * 60
-    if not (0 < seconds <= 86400):
-        messagebox.showerror("Ошибка", "Введите корректное время (1 минута – 20 часов)")
+    if hours == 0 and minutes == 0:
+        messagebox.showerror("Ошибка", "Введите хотя бы 1 минуту")
         return
 
+
+    seconds = hours * 3600 + minutes * 60
+    if not (0 < seconds <= 72000):
+        messagebox.showerror("Ошибка", "Введите корректное время (1 минута – 20 часов)")
+        return
+    
     if mode == "hibernate":
         cmd = f"timeout /t {seconds} /nobreak && rundll32.exe powrprof.dll,SetSuspendState Hibernate"
     elif mode == "sleep":
@@ -44,15 +49,12 @@ def start_timer():
 
 def change_focused(delta):
     # delta: 1 = вправо (плюс), -1 = влево (минус)
-    
-    # Проверяем, находится ли фокус на поле "Часы"
     if root.focus_get() == hours_entry:
         change_value(hours_entry, delta)
     
-    # Проверяем, находится ли фокус на поле "Минуты"
     elif root.focus_get() == minutes_entry:
         change_value(minutes_entry, delta)
-    # Если фокус ни на одном поле - ничего не делаем
+    
 
 def switch_focus(direction):
     if direction == -1:  # вверх - на часы
@@ -66,9 +68,20 @@ def change_value(entry, delta):
         value = int(entry.get())
     except ValueError:
         value = 0
-    value = max(0, value + delta)
+    
+    # Ограничения для часов
+    if entry == hours_entry:
+        value = max(0, min(20, value + delta)) 
+    # Ограничения для минут
+    elif entry == minutes_entry:
+        if int(hours_entry.get() or 0) == 20:
+            value = 0          
+        else:
+            value = max(0, min(59, value + delta))
+    
     entry.delete(0, tk.END)
     entry.insert(0, str(value))
+
 
 root = tk.Tk()
 root.title("Shutdown Timer")
